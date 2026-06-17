@@ -1,6 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+#define START_ROOM 101
+#define END_ROOM 110
+
 
 struct data{
 	int room;
@@ -10,12 +13,13 @@ struct data{
 
 
 FILE *fp, *temp;
-struct data r;
+struct data r, t;
 
 void add();
 void display();
 void removeData();
 void search();
+void availableRooms();
 
 int main()
 {
@@ -42,6 +46,8 @@ int main()
 			goto mark;
 			break;
 		case 3:
+			availableRooms();
+			goto mark;
 			break;
 		case 4:
 			display();
@@ -64,17 +70,41 @@ int main()
 
 void add()
 {
-	fp=fopen("C:\\C project\\occupancy.dat","ab");
+	int found = 0;
+
+	printf("Enter room no: ");
+	scanf("%d",&r.room);
+	fflush(stdin);
+	
+	fp = fopen("occupancy.dat", "rb");
+
+    if(fp != NULL)
+    {
+        while(fread(&t, sizeof(t), 1, fp) == 1)
+        {
+            if(t.room == r.room)
+            {
+                found = 1;
+                break;
+            }
+        }
+        fclose(fp);
+    }
+
+    if(found)
+    {
+        printf("Room %d is not available!\n", r.room);
+        return;
+    }
+
+
+	fp=fopen("occupancy.dat","ab");
 	
 	if(fp == NULL)
 	{
 	    printf("File cannot be opened!");
 	    return;
 	}
-	
-	printf("Enter room no: ");
-	scanf("%d",&r.room);
-	fflush(stdin);
 	
 	printf("Enter guests name: ");
 	gets(r.name);
@@ -85,6 +115,8 @@ void add()
 	fflush(stdin);
 	
 	fwrite(&r,sizeof(r),1,fp);
+	
+	printf("Room booked successfully.\n");
 	
 	fclose(fp);
 }
@@ -108,6 +140,38 @@ void display()
 	fclose(fp);
 }
 
+
+void availableRooms()
+{
+	int i;
+	
+    int occupied[END_ROOM - START_ROOM + 1] = {0};
+
+    fp = fopen("occupancy.dat", "rb");
+
+    if(fp != NULL)
+    {
+        while(fread(&r, sizeof(r), 1, fp) == 1)
+        {
+            if(r.room >= START_ROOM && r.room <= END_ROOM)
+            {
+                occupied[r.room - START_ROOM] = 1;
+            }
+        }
+
+        fclose(fp);
+    }
+
+    printf("\nAvailable Rooms:\n");
+
+    for(i = START_ROOM; i <= END_ROOM; i++)
+    {
+        if(occupied[i - START_ROOM] == 0)
+        {
+            printf("%d\n", i);
+        }
+    }
+}
 
 void removeData(){
 	int roomNo;
